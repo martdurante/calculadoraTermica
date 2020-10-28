@@ -53,9 +53,13 @@ def tempAcum (ESTACION,FECHA,ACUM,TBASE):
 	tu = temperatura.iloc[::-1].reset_index()
 	return 'El '+str(tu['anio'][0])+'-'+str(tu['mes'][0])+'-'+str(tu['dia'][0])+' se alcanzaran '+str(tu['tAcum'][0])+'ºCd ('+str(tu.shape[0])+' dias de acumulacion)'
 
-external_stylesheets = ["https://codepen.io/chriddyp/pen/bWLwgP.css"]
 
+########### Initiate the app
+external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+server = app.server
+app.title='CalculadoraTermica'
+
 
 app.layout = html.Div(
     [
