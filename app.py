@@ -57,9 +57,6 @@ def tempAcum (ESTACION,FECHA,ACUM,TBASE):
 ########### Initiate the app
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
-server = app.server
-app.title='CalculadoraTermica'
-
 
 app.layout = html.Div(
     [
@@ -74,16 +71,18 @@ app.layout = html.Div(
     ]
 )
 
-
 @app.callback(
     Output("Ofecha", "children"),
     Output("Otacum", "children"),
     [Input("input1", "value"), Input("input2", "value"), Input("input3", "value"), Input("input4", "value")],
 )
+
 def update_output(input1, input2, input3, input4):
 	return u'Estacion = {}, Fecha = {}, Cd a acumular = {}, Temp. Base = {}'.format(input1, input2, input3, input4), tempAcum(input1,input2,int(input3),int(input4))
 	#return u'temperatura= tempAcum ({},{},400,0)'.format(input1, input2), tempAcum(input1,input2,400,0).iloc[::-1].reset_index()['tAcum'][0]
 
+server = app.server
+app.title='CalculadoraTermica'
 
 if __name__ == "__main__":
     app.run_server(debug=True)
