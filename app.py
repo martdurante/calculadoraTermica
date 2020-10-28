@@ -2,9 +2,6 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
-import dash_table
-import dash_table.FormatTemplate as FormatTemplate
-from dash_table.Format import Sign
 from collections import OrderedDict
 import datetime
 from urllib.request import Request, urlopen
