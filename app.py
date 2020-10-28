@@ -1,82 +1,63 @@
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Input, Output
-from collections import OrderedDict
-import datetime
-from urllib.request import Request, urlopen
-import pandas as pd
-from calendar import monthrange
+import plotly.graph_objs as go
 
-def tempAcum (ESTACION,FECHA,ACUM,TBASE):
-	date = datetime.datetime(int(FECHA.split('-')[0]),int(FECHA.split('-')[1]),int(FECHA.split('-')[2]))
-	iteracion=1
-	temperatura = pd.DataFrame(columns=['dia','mes','anio','max','min','tProm','tAcum'])
-	sigue = True
-	while sigue:
-		mesLetra=date.strftime('%B')
-		dia=int(date.strftime('%d'))
-		mes=int(date.strftime('%m'))
-		anio=int(date.strftime('%Y'))
-		dias_en_mes=monthrange(anio, mes)[1]
-		url = 'https://www.accuweather.com/es/uy/'+ESTACION+'/'+mesLetra+'-weather/'+ESTACION.split('/')[1]+'?year='+str(anio)
-		req = Request(url, headers={'User-Agent': 'XYZ/3.0'})
-		response = urlopen(req, timeout=20).read()
-		fecha = []
-		maxi = []
-		mini = []
-		for i in list(range(1, 36)):
-			fe = str(response).split('date">\\n\\t\\t\\t\\t\\t\\t')[i][0:3]
-			ma = str(response).split('high  ">\\n\\t\\t\\t\\t\\t\\t')[i][0:3]
-			mi = str(response).split('low">\\n\\t\\t\\t\\t\\t\\t')[i][0:3]
-			fecha.append(int(''.join([n for n in fe if n.isdigit()])))
-			maxi.append(float(''.join([n for n in ma if n.isdigit()])))
-			mini.append(float(''.join([n for n in mi if n.isdigit()])))
-		iniMes = fecha.index(1)
-		finMes = max([i for i,x in enumerate(fecha) if x==dias_en_mes])
-		addDiaIni = dia-1 if iteracion == 1 else 0
-		temp=pd.DataFrame({'dia':fecha[iniMes+addDiaIni:finMes+1],'mes':mes,'anio':anio ,'max':maxi[iniMes+addDiaIni:finMes+1], 'min':mini[iniMes+addDiaIni:finMes+1]})
-		temp['tProm'] = (temp['max']+temp['min'])/2-TBASE
-		temp.tProm = temp.tProm.mask(temp.tProm.lt(0),0)
-		temp['tAcum'] = temp['tProm'].cumsum()
-		temperatura = pd.concat([temperatura,temp])
-		temperatura['tAcum'] = temperatura['tProm'].cumsum()
-		#temp
-		iteracion +=1
-		date = date+datetime.timedelta(days=dias_en_mes)
-		if max(temperatura['tAcum'])>ACUM:
-			sigue = False
-	temperatura = temperatura[temperatura.tAcum<=min(temperatura[temperatura.tAcum>ACUM]['tAcum'])]
-	tu = temperatura.iloc[::-1].reset_index()
-	return 'El '+str(tu['anio'][0])+'-'+str(tu['mes'][0])+'-'+str(tu['dia'][0])+' se alcanzaran '+str(tu['tAcum'][0])+'ºCd ('+str(tu.shape[0])+' dias de acumulacion)'
+########### Define your variables
+beers=['Chesapeake Stout', 'Snake Dog IPA', 'Imperial Porter', 'Double Dog IPA']
+ibu_values=[35, 60, 85, 75]
+abv_values=[5.4, 7.1, 9.2, 4.3]
+color1='darkred'
+color2='orange'
+mytitle='Beer Comparison'
+tabtitle='beer!'
+myheading='Flying Dog Beers'
+label1='IBU'
+label2='ABV'
+githublink='https://github.com/austinlasseter/flying-dog-beers'
+sourceurl='https://www.flyingdog.com/beers/'
 
-external_stylesheets = ["https://codepen.io/chriddyp/pen/bWLwgP.css"]
+########### Set up the chart
+bitterness = go.Bar(
+    x=beers,
+    y=ibu_values,
+    name=label1,
+    marker={'color':color1}
+)
+alcohol = go.Bar(
+    x=beers,
+    y=abv_values,
+    name=label2,
+    marker={'color':color2}
+)
 
+beer_data = [bitterness, alcohol]
+beer_layout = go.Layout(
+    barmode='group',
+    title = mytitle
+)
+
+beer_fig = go.Figure(data=beer_data, layout=beer_layout)
+
+
+########### Initiate the app
+external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+server = app.server
+app.title=tabtitle
 
-app.layout = html.Div(
-    [
-        html.I("Calculadora Termica"),
-        html.Br(),
-        dcc.Input(id="input1", type="text", placeholder="", value='tacuarembo/350800', debounce=True),
-        dcc.Input(id="input2", type="text", placeholder="", value='2020-10-10', debounce=True),
-        dcc.Input(id="input3", type="text", placeholder="", value='450', debounce=True),
-        dcc.Input(id="input4", type="text", placeholder="", value='0', debounce=True),
-        html.Div(id="Ofecha"),
-        html.Div(id="Otacum")
+########### Set up the layout
+app.layout = html.Div(children=[
+    html.H1(myheading),
+    dcc.Graph(
+        id='flyingdog',
+        figure=beer_fig
+    ),
+    html.A('Code on Github', href=githublink),
+    html.Br(),
+    html.A('Data Source', href=sourceurl),
     ]
 )
 
-
-@app.callback(
-    Output("Ofecha", "children"),
-    Output("Otacum", "children"),
-    [Input("input1", "value"), Input("input2", "value"), Input("input3", "value"), Input("input4", "value")],
-)
-def update_output(input1, input2, input3, input4):
-	return u'Estacion = {}, Fecha = {}, Cd a acumular = {}, Temp. Base = {}'.format(input1, input2, input3, input4), tempAcum(input1,input2,int(input3),int(input4))
-	#return u'temperatura= tempAcum ({},{},400,0)'.format(input1, input2), tempAcum(input1,input2,400,0).iloc[::-1].reset_index()['tAcum'][0]
-
-
-if __name__ == "__main__":
-    app.run_server(debug=True)
+if __name__ == '__main__':
+    app.run_server()
