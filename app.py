@@ -28,7 +28,8 @@ def tempAcum (ESTACION,FECHA,ACUM,TBASE):
 		fecha = []
 		maxi = []
 		mini = []
-		for i in list(range(1, 36)):
+		n_iterDias = len(str(response).split('low">\\n\\t\\t\\t\\t\\t\\t'))
+		for i in list(range(1, n_iterDias)):
 			fe = str(response).split('date">\\n\\t\\t\\t\\t\\t\\t')[i][0:3]
 			ma = str(response).split('high  ">\\n\\t\\t\\t\\t\\t\\t')[i][0:3]
 			mi = str(response).split('low">\\n\\t\\t\\t\\t\\t\\t')[i][0:3]
@@ -63,7 +64,7 @@ app.layout = html.Div(
         html.I("Calculadora Termica"),
         html.Br(),
         dcc.Input(id="input1", type="text", placeholder="", value='tacuarembo/350800', debounce=True),
-        dcc.Input(id="input2", type="text", placeholder="", value='2020-10-10', debounce=True),
+        dcc.Input(id="input2", type="text", placeholder="", value='2020-08-01', debounce=True),
         dcc.Input(id="input3", type="text", placeholder="", value='450', debounce=True),
         dcc.Input(id="input4", type="text", placeholder="", value='0', debounce=True),
         html.Div(id="Ofecha"),
